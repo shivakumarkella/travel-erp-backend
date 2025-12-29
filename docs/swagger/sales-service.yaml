@@ -1,0 +1,212 @@
+openapi: 3.0.3
+info:
+  title: Sales Service API
+  description: Phase-1 Sales & Booking APIs
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:3000
+    description: Local
+
+tags:
+  - name: Leads
+  - name: Bookings
+  - name: Sales
+
+paths:
+
+  /api/v1/leads:
+    post:
+      tags: [Leads]
+      summary: Create lead (TCMS-SLS-001)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateLeadRequest'
+      responses:
+        '201':
+          description: Lead created
+        '200':
+          description: Duplicate lead found
+
+  /api/v1/leads/{leadId}/assign:
+    post:
+      tags: [Leads]
+      summary: Assign lead owner (TCMS-SLS-002)
+      parameters:
+        - $ref: '#/components/parameters/LeadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignLeadRequest'
+      responses:
+        '200':
+          description: Lead assigned
+
+  /api/v1/leads/{leadId}/status:
+    patch:
+      tags: [Leads]
+      summary: Update lead status (TCMS-SLS-004)
+      parameters:
+        - $ref: '#/components/parameters/LeadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateLeadStatusRequest'
+      responses:
+        '200':
+          description: Status updated
+
+  /api/v1/leads/{leadId}/qualify:
+    post:
+      tags: [Leads]
+      summary: Qualify lead (TCMS-SLS-005)
+      parameters:
+        - $ref: '#/components/parameters/LeadId'
+      responses:
+        '200':
+          description: Lead qualified
+
+  /api/v1/leads/{leadId}/close-lost:
+    post:
+      tags: [Leads]
+      summary: Close lead as lost (TCMS-SLS-006)
+      parameters:
+        - $ref: '#/components/parameters/LeadId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CloseLeadRequest'
+      responses:
+        '200':
+          description: Lead closed as lost
+
+  /api/v1/bookings:
+    post:
+      tags: [Bookings]
+      summary: Create booking from lead (TCMS-SLS-007)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateBookingRequest'
+      responses:
+        '201':
+          description: Booking created
+
+  /api/v1/bookings/{bookingId}/confirm:
+    post:
+      tags: [Bookings]
+      summary: Confirm booking (TCMS-SLS-009)
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      responses:
+        '200':
+          description: Booking confirmed
+
+  /api/v1/bookings/{bookingId}/payment-status:
+    patch:
+      tags: [Bookings]
+      summary: Update payment status (TCMS-SLS-010)
+      parameters:
+        - $ref: '#/components/parameters/BookingId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentStatusRequest'
+      responses:
+        '200':
+          description: Payment status updated
+
+components:
+
+  parameters:
+    LeadId:
+      name: leadId
+      in: path
+      required: true
+      schema:
+        type: string
+
+    BookingId:
+      name: bookingId
+      in: path
+      required: true
+      schema:
+        type: string
+
+  schemas:
+
+    CreateLeadRequest:
+      type: object
+      required: [mobile, source]
+      properties:
+        name:
+          type: string
+        mobile:
+          type: string
+        email:
+          type: string
+        source:
+          type: string
+          enum: [WEBSITE, WHATSAPP, CHATBOT, MANUAL]
+
+    AssignLeadRequest:
+      type: object
+      required: [assigneeId]
+      properties:
+        assigneeId:
+          type: string
+
+    UpdateLeadStatusRequest:
+      type: object
+      required: [status, reason]
+      properties:
+        status:
+          type: string
+          enum: [NEW, IN_PROGRESS, QUALIFIED, WON, LOST]
+        reason:
+          type: string
+
+    CloseLeadRequest:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+
+    CreateBookingRequest:
+      type: object
+      required: [leadId, destination, startDate, endDate]
+      properties:
+        leadId:
+          type: string
+        destination:
+          type: string
+        startDate:
+          type: string
+          format: date
+        endDate:
+          type: string
+          format: date
+        travellers:
+          type: integer
+
+    PaymentStatusRequest:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [ADVANCE, FULL, PENDING]
